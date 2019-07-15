@@ -137,10 +137,31 @@ private String promotionPrice;
 private Integer priority;
 private Date createTime;
 private Date lastEditTime;
-private Integer enableStatus;
+private Integer enableStatus; // 0-下架 1-可在前端展示
 
 private List<ProductImg> productImgList;
 private ProductCategory productCategory;
 private Shop shop;
+```
+
+* **ProductCategory** -- tb_product_category
+
+```java
+private Long productCategoryId;
+private Long shopId;
+private String productCategoryName;
+private Integer priority;
+private Date createTime;
+```
+
+* **ProductImg** -- tb_product_img
+
+```java
+private Long productImgId;
+private String imgAddr;
+private String imgDesc;
+private Integer priority;
+private Date createTime;
+private Long productId;
 ```
 
