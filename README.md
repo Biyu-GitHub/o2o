@@ -6,6 +6,8 @@
 - Google Chrome
 - Tomcat 8
 - IDEA
+- Postman
+- Json Viewer
 
 ## 1. 项目初始化
 
@@ -163,5 +165,171 @@ private String imgDesc;
 private Integer priority;
 private Date createTime;
 private Long productId;
+```
+
+### 2.3 单元测试
+
+* 编写接口
+* 编写实现类
+* 编写测试类
+
+```java
+// 自动注入依赖
+@AutoWired
+
+// 表明这是一个Service
+@Service
+
+// 单元测试的时候使用，配置spring和junit整合，junit在启动时加载springIOC容器
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration({
+    "classpath:spring/spring-dao.xml",
+    "classpath:spring/spring-service.xml"})
+```
+
+#### 2.3.1 Dao层单元测试
+
+* 接口
+
+```java
+public interface AreaDao {
+    /**
+     * 列出区域列表
+     * @return areaList
+     */
+    List<Area> queryArea();
+}
+```
+
+* 使用Mybatis不需要实现类，直接编写配置文件 **resources/mapper/AreaDao.xml**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace指定接口 -->
+<mapper namespace="com.biyu.o2o.dao.AreaDao">
+    
+    <!-- id指定方法  resultType指定返回值类型-->
+    <select id="queryArea" resultType="com.biyu.o2o.entity.Area">
+        SELECT
+            area_id,
+            area_name,
+            priority,
+            create_time,
+            last_edit_time
+        FROM
+            tb_area
+        ORDER BY
+            priority DESC;
+    </select>
+</mapper>
+```
+
+#### 2.3.2 Srevice层单元测试
+
+* 接口
+
+```java
+public interface AreaService {
+    List<Area> getAreaList();
+}
+```
+
+* 实现类 -- 直接调用Dao
+
+```java
+@Service
+public class AreaServiceImpl implements AreaService {
+
+    @Autowired
+    private AreaDao areaDao;
+
+    @Override
+    public List<Area> getAreaList() {
+        return areaDao.queryArea();
+    }
+}
+```
+
+* 测试类
+
+```java
+public class AreaServiceTest extends BaseTest {
+
+    @Autowired
+    private AreaService areaService;
+
+    @Test
+    public void getAreaList() {
+        List<Area> areaList = areaService.getAreaList();
+        assert "东苑".equals(areaList.get(0).getAreaName());
+    }
+}
+```
+
+#### 2.3.3 Web层验证
+
+* 实现类 -- 直接调用Service
+
+```java
+@Controller
+@RequestMapping("/superadmin") // servlet映射
+public class AreaController {
+
+    @Autowired
+    private AreaService areaService;
+
+    @RequestMapping(value = "/listarea", method = RequestMethod.GET)
+    @ResponseBody // 将返回值自动转为json对象
+    private Map<String, Object> listArea() {
+        
+        Map<String, Object> modelMap = new HashMap<>();
+        List<Area> list = new ArrayList<>();
+
+        try {
+            list = areaService.getAreaList();
+            modelMap.put("rows", list);
+            modelMap.put("total", list.size());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            modelMap.put("success", false);
+            modelMap.put("reeMsg", e.toString());
+        }
+        return modelMap;
+    }
+}
+```
+
+> map的key使用**rows**与**total**是为了搭配后面要用到的前端框架
+>
+> @RequestMapping：设置路由
+>
+>  @ResponseBody：将返回值自动转为json对象
+
+* 测试 -- 直接启动浏览器，并输入以下地址
+
+```http
+http://localhost:8080/o2o/superadmin/listarea
+```
+
+* 显示结果
+
+```json
+{
+    "total": 1,
+    "rows": [
+        {
+            "areaId": 1,
+            "areaName": "东苑",
+            "priority": 12,
+            "createTime": 1496603578000,
+            "lastEditTime": 1496603578000
+        }
+    ]
+}
 ```
 

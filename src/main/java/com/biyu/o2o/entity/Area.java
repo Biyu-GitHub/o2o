@@ -8,8 +8,6 @@ public class Area {
 
     private String areaName;
 
-    private String areaDesc;
-
     private Integer priority; // 权重，用来排序
 
     private Date createTime;
@@ -31,14 +29,6 @@ public class Area {
 
     public void setAreaName(String areaName) {
         this.areaName = areaName;
-    }
-
-    public String getAreaDesc() {
-        return areaDesc;
-    }
-
-    public void setAreaDesc(String areaDesc) {
-        this.areaDesc = areaDesc;
     }
 
     public Integer getPriority() {
@@ -63,5 +53,16 @@ public class Area {
 
     public void setLastEditTime(Date lastEditTime) {
         this.lastEditTime = lastEditTime;
+    }
+
+    @Override
+    public String toString() {
+        return "Area{" +
+                "areaId=" + areaId +
+                ", areaName='" + areaName + '\'' +
+                ", priority=" + priority +
+                ", createTime=" + createTime +
+                ", lastEditTime=" + lastEditTime +
+                '}';
     }
 }
