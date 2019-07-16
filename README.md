@@ -9,6 +9,12 @@
 - Postman
 - Json Viewer
 
+## SSM重点知识
+
+* SpringMVC：DispatcherServlet
+* Spring：IOC（DI）和AOP（JDK，cglib）
+* MyBatis：ORM
+
 ## 1. 项目初始化
 
 新建MavenWebApp项目，并在web.xml中修改servlet版本为3.1
@@ -333,3 +339,125 @@ http://localhost:8080/o2o/superadmin/listarea
 }
 ```
 
+## 3. LogBack配置与使用
+
+* 主要模块：
+  * logback-access
+  * logback-classic
+  * logback-core
+* 主要标签：
+  * logger
+  * appender
+  * layout
+
+### 3.1 配置
+
+* **main/resources/logback.xml**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <!-- 定义参数常量 -->
+    <!--
+    logback日志级别
+    TRACE < DEBUG < INFO < WARN < ERROR
+    一般将DEBUG，INFO，ERROR三个级别的日志存储在3个文件当中
+    -->
+    <property name="log.level" value="debug"/>
+    <!--最多保存30个-->
+    <property name="log.maxHistory" value="30"/>
+    <!--日志存储路径-->
+    <property name="log.filePath" value="${catalina.base}/logs/webapps"/>
+    <!--日志展示格式-->
+    <property name="log.pattern"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"/>
+
+    <!--定义日志的输出媒介，控制台设置-->
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <!--DEBUG-->
+    <appender name="debugAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--文件路径-->
+        <file>${log.filePath}/debug.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件名称-->
+            <fileNamePattern>${log.filePath}/debug/debug.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--文件最大保存历史数量-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--INFO-->
+    <appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--文件路径-->
+        <file>${log.filePath}/info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件名称-->
+            <fileNamePattern>${log.filePath}/info/info.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--文件最大保存历史数量-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--ERROR-->
+    <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--文件路径-->
+        <file>${log.filePath}/error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件名称-->
+            <fileNamePattern>${log.filePath}/error/error.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--文件最大保存历史数量-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <logger name="com.biyu.o2o" level="${log.level}" additivity="true">
+        <appender-ref ref="debugAppender"/>
+        <appender-ref ref="infoAppender"/>
+        <appender-ref ref="errorAppender"/>
+    </logger>
+
+    <root level="info">
+        <appender-ref ref="consoleAppender"/>
+    </root>
+</configuration>
+```
+
+### 3.2 使用
+
+* 启动tomcat会显示**CATALINA_BASE**信息：
+
+```bash
+"C:\Users\BiYu\.IntelliJIdea2019.1\system\tomcat\index_jsp_o2o"
+```
+
+* 会在CATALINA_BASE/logs/webapps/下生成日志文件
+* 第二天会将第一天的日志打包成压缩文件
