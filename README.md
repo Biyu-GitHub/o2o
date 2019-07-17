@@ -15,6 +15,10 @@
 * Spring：IOC（DI）和AOP（JDK，cglib）
 * MyBatis：ORM
 
+## 资源网站
+
+* [MVNRepository](https://mvnrepository.com/)
+
 ## 1. 项目初始化
 
 新建MavenWebApp项目，并在web.xml中修改servlet版本为3.1
@@ -461,3 +465,47 @@ http://localhost:8080/o2o/superadmin/listarea
 
 * 会在CATALINA_BASE/logs/webapps/下生成日志文件
 * 第二天会将第一天的日志打包成压缩文件
+
+## 4. 店铺注册
+
+* 数据库链接
+* Mybatis数据库映射关系配置
+* dao -> service -> conyroller层代码的编写，Junit的使用
+* Session，图片处理工具Thumbnailator的使用
+* suimobile前端设计与开发
+
+### 4.1 插入
+
+```xml
+<insert id="insertShop" useGeneratedKeys="true" keyColumn="shop_id" keyProperty="shopId">
+    INSERT INTO tb_shop (owner_id, area_id, shop_category_id, shop_name, shop_desc, shop_addr, phone, shop_img,
+    priority, create_time, last_edit_time, enable_status, advice)
+    VALUES (#{owner.userId}, #{area.areaId}, #{shopCategory.shopCategoryId}, #{shopName}, #{shopDesc}, #{shopAddr},
+    #{phone}, #{shopImg}, #{priority}, #{createTime}, #{lastEditTime}, #{enableStatus}, #{advice});
+</insert>
+```
+
+### 4.2 更新
+
+```xml
+<update id="updateShop" parameterType="com.biyu.o2o.entity.Shop">
+    update tb_shop
+    <set>
+        <if test="shopName != null">shop_name=#{shopName},</if>
+        <if test="shopDesc != null">shop_desc=#{shopDesc},</if>
+        <if test="shopAddr != null">shop_addr=#{shopAddr},</if>
+        <if test="phone != null">phone=#{phone},</if>
+        <if test="shopImg != null">shop_img=#{shopImg},</if>
+        <if test="priority != null">priority=#{priority},</if>
+        <if test="lastEditTime != null">last_edit_time=#{lastEditTime},</if>
+        <if test="enableStatus != null">enable_status=#{enableStatus},</if>
+        <if test="advice != null">advice=#{advice},</if>
+        <if test="area != null">area_id=#{area.areaId},</if>
+        <if test="shopCategory != null">shop_category_id=#{shopCategory.shopCategoryId}</if>
+    </set>
+    where shop_id=#{shopId}
+</update>
+```
+
+
+
