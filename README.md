@@ -750,10 +750,163 @@ public class ShopServiceTest extends BaseTest {
         File shopImg = new File("C:\\Users\\BiYu\\Pictures\\frame0000.jpg");
         ShopExecution se = shopService.addShop(shop, shopImg);
 
-        assert ShopStateEnum.CHECK.getState() == se.getState();
+        assert ShopStateEnum.CHECK.getState() == se.getState(); 
     }
 }
 ```
+
+### 4.6 Controller
+
+1. 接收并转化相应的参数，包括店铺信息以及图片信息
+2. 注册店铺
+3. 返回结果
+
+#### 4.6.1 工具类编写
+
+``` java
+package com.biyu.o2o.util;
+
+/**
+ * 尝试解析各种类型的参数并返回
+ */
+public class HttpServletRequestUtil {
+    public static int getInt(HttpServletRequest request, String name) {
+
+        try {
+            return Integer.decode(request.getParameter(name));
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    public static long getLong(HttpServletRequest request, String name) {
+
+        try {
+            return Long.valueOf(request.getParameter(name));
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    public static Double getDouble(HttpServletRequest request, String name) {
+
+        try {
+            return Double.valueOf(request.getParameter(name));
+        } catch (Exception e) {
+            return -1d;
+        }
+    }
+
+    public static Boolean getBoolean(HttpServletRequest request, String name) {
+
+        try {
+            return Boolean.valueOf(request.getParameter(name));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static String getString(HttpServletRequest request, String name) {
+        try {
+            String result = request.getParameter(name);
+            if (result != null) {
+                result = result.trim();
+            }
+            if ("".equals(result))
+                result = null;
+            return result;
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
+}
+```
+
+#### 4.6.2 接收并转化相应的参数，包括店铺信息以及图片信息
+
+```java
+// 定义返回值
+Map<String, Object> modelMap = new HashMap<>();
+
+// 1. 接收并转化相应的参数，包括店铺信息以及图片信息
+String shopStr = HttpServletRequestUtil.getString(request, "shopStr");
+
+// 使用jackson解析参数,并封装成shop对象
+ObjectMapper mapper = new ObjectMapper();
+Shop shop = null;
+try {
+    shop = mapper.readValue(shopStr, Shop.class)
+} catch (Exception e) {
+    modelMap.put("success", false);
+    modelMap.put("errMsg", e.getMessage());
+    return modelMap;
+}
+
+// 接收图片
+CommonsMultipartFile shopImg = null;
+// 文件上传解析器
+CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver(request.getSession().getServletContext());
+// 如果有上传的文件流
+if (commonsMultipartResolver.isMultipart(request)) {
+    MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) request;
+    shopImg = (CommonsMultipartFile) multipartHttpServletRequest.getFile("shopImg");
+} else {
+    // 约定必须上传图片
+    modelMap.put("success", false);
+    modelMap.put("errMsg", "上传图片不能为空");
+    return modelMap;
+}
+```
+
+#### 4.6.3 注册并返回结果
+
+```java
+// 2. 注册店铺
+if (shop != null && shopImg != null) {
+    PersonInfo owner = new PersonInfo();
+
+    // TODO 应该从session获取，现在先直接指定
+    owner.setUserId(1L);
+    shop.setOwner(owner);
+
+    // 图片流转换
+    File shopImgFile = new File(PathUtil.getImgBasePath() + ImageUtil.getRandomFileName());
+    try {
+        shopImgFile.createNewFile();
+    } catch (IOException e) {
+        modelMap.put("success", false);
+        modelMap.put("errMsg", e.getMessage());
+        return modelMap;
+    }
+    try {
+        inputStreamToFile(shopImg.getInputStream(), shopImgFile);
+    } catch (IOException e) {
+        modelMap.put("success", false);
+        modelMap.put("errMsg", e.getMessage());
+        return modelMap;
+    }
+
+    // 添加店铺
+    ShopExecution se = shopService.addShop(shop, shopImgFile);
+    // 添加店铺状态判断
+    if (se.getState() == ShopStateEnum.CHECK.getState()) {
+        modelMap.put("success", true);
+    } else {
+        modelMap.put("success", false);
+        modelMap.put("errMsg", se.getState());
+        return modelMap;
+    }
+    return modelMap;
+
+} else {
+    modelMap.put("success", false);
+    modelMap.put("errMsg", "请输入店铺信息");
+    return modelMap;
+}
+```
+
+
 
 
 
