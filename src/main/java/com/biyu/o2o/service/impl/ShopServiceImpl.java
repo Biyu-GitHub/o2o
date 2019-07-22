@@ -48,9 +48,11 @@ public class ShopServiceImpl implements ShopService {
             // 添加店铺
             int effectedNum = shopDao.insertShop(shop);
 
+            // 插入失败，影响行数为0
             if (effectedNum <= 0) {
                 throw new ShopOperatorException("店铺创建失败");
             } else {
+                // 如果传入了图片，则向店铺插入图片
                 if (shopImg != null) {
                     try {
                         addShopImg(shop, shopImg);

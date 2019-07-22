@@ -21,12 +21,15 @@ public class ShopExecution {
     // 获取的shop列表(查询店铺列表的时候用)
     private List<Shop> shopList;
 
-
+    /**
+     * 默认构造函数
+     */
     public ShopExecution() {
     }
 
     /**
      * 店铺操作失败的时候使用的构造器
+     * 只返回状态信息
      *
      * @param stateEnum
      */
@@ -37,6 +40,7 @@ public class ShopExecution {
 
     /**
      * 店铺操作成功的时候使用的构造器
+     * 返回状态信息 和 shop对象
      *
      * @param stateEnum
      * @param shop

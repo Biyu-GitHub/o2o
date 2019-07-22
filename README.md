@@ -202,6 +202,8 @@ private Long productId;
 * 接口
 
 ```java
+package com.biyu.o2o.dao;
+
 public interface AreaDao {
     /**
      * 列出区域列表
@@ -243,12 +245,14 @@ public interface AreaDao {
 * 接口
 
 ```java
+package com.biyu.o2o.service;
+
 public interface AreaService {
     List<Area> getAreaList();
 }
 ```
 
-* 实现类 -- 直接调用Dao
+* 实现类 -- **直接调用Dao**
 
 ```java
 @Service
@@ -282,9 +286,11 @@ public class AreaServiceTest extends BaseTest {
 
 #### 2.3.3 Web层验证
 
-* 实现类 -- 直接调用Service
+* 实现类 -- **直接调用Service**
 
 ```java
+package com.biyu.o2o.web.superadmin;
+
 @Controller
 @RequestMapping("/superadmin") // servlet映射
 public class AreaController {
@@ -474,7 +480,7 @@ http://localhost:8080/o2o/superadmin/listarea
 * Session，图片处理工具Thumbnailator的使用
 * suimobile前端设计与开发
 
-### 4.1 插入
+### 4.1 插入店铺
 
 ```xml
 <insert id="insertShop" useGeneratedKeys="true" keyColumn="shop_id" keyProperty="shopId">
@@ -485,7 +491,7 @@ http://localhost:8080/o2o/superadmin/listarea
 </insert>
 ```
 
-### 4.2 更新
+### 4.2 更新店铺
 
 ```xml
 <update id="updateShop" parameterType="com.biyu.o2o.entity.Shop">
@@ -511,7 +517,245 @@ http://localhost:8080/o2o/superadmin/listarea
 
 ### 4.4 ShopExecution
 
+* 用于封装添加店铺的返回类型
+* 为什么不直接使用实体类shop作为返回类型？
+  * 因为需要额外的信息，例如添加成功或失败等等状态
+
+
+
+* 成员属性
+
+```java
+package com.biyu.o2o.dto;
+
+public class ShopExecution {
+    // 结果状态
+    private int state;
+    // 状态标识
+    private String stateInfo;
+    // 店铺数量
+    private int count;
+    // 操作的shop（增删改店铺的时候用）
+    private Shop shop;
+    // 获取的shop列表(查询店铺列表的时候用)
+    private List<Shop> shopList;
+}
+```
+
+* 店铺状态信息枚举类
+
+```java
+public enum ShopStateEnum {
+    CHECK(0, "审核中"),
+    OFFLINE(-1, "非法商铺"),
+    SUCCESS(1, "操作成功"),
+    PASS(2, "通过认证"),
+    INNER_ERROR(-1001, "系统内部错误"),
+    NULL_SHOPID(-1002, "ShopId为空"),
+    NULL_SHOP_INFO(-1003, "传入了空的信息");
+}
+```
+
+* 构造器
+
+```java
+	/**
+     * 默认构造函数
+     */
+    public ShopExecution() {
+    }
+
+    /**
+     * 店铺操作失败的时候使用的构造器
+     * 只返回状态信息
+     *
+     * @param stateEnum
+     */
+    public ShopExecution(ShopStateEnum stateEnum) {
+        this.state = stateEnum.getState();
+        this.stateInfo = stateEnum.getStateInfo();
+    }
+
+    /**
+     * 店铺操作成功的时候使用的构造器
+     * 返回状态信息 和 shop对象
+     *
+     * @param stateEnum
+     * @param shop
+     */
+    public ShopExecution(ShopStateEnum stateEnum, Shop shop) { 
+        this.state = stateEnum.getState();
+        this.stateInfo = stateEnum.getStateInfo();
+        this.shop = shop;
+    }
+
+    /**
+     * 店铺操作成功的时候使用的构造器
+     *
+     * @param stateEnum
+     * @param shopList
+     */
+    public ShopExecution(ShopStateEnum stateEnum, List<Shop> shopList) {
+        this.state = stateEnum.getState();
+        this.stateInfo = stateEnum.getStateInfo();
+        this.shopList = shopList;
+    }
+```
+
 ### 4.5 Service
+
+* 接口
+
+```java
+package com.biyu.o2o.service;
+
+public interface ShopService {
+    /**
+     * 添加店铺
+     * @param shop shop对象
+     * @param shopImg 店铺图片
+     * @return
+     */
+    ShopExecution addShop(Shop shop, File shopImg);
+}
+```
+
+* 实现类
+
+```java
+@Service
+public class ShopServiceImpl implements ShopService {
+
+    @Autowired
+    private ShopDao shopDao;
+
+    /**
+     * 添加店铺信息：
+     * 1. 向数据库插入店铺
+     * 2. 添加图片
+     * 3. 更新shop中的店铺图片地址
+     *
+     * @param shop    shop对象
+     * @param shopImg 店铺图片
+     * @return
+     */
+    @Override
+    @Transactional // 事务支持
+    public ShopExecution addShop(Shop shop, File shopImg) {
+
+        if (shop == null) {
+            return new ShopExecution(ShopStateEnum.NULL_SHOP_INFO);
+        }
+
+        try {
+            // 初始化店铺信息
+            shop.setEnableStatus(0); // 设置为未审核状态
+            shop.setCreateTime(new Date());
+            shop.setLastEditTime(new Date());
+
+            // 添加店铺
+            int effectedNum = shopDao.insertShop(shop);
+
+            // 插入失败，影响行数为0
+            if (effectedNum <= 0) {
+                throw new ShopOperatorException("店铺创建失败");
+            } else {
+                // 如果传入了图片，则向店铺插入图片
+                if (shopImg != null) {
+                    try {
+                        addShopImg(shop, shopImg);
+                    } catch (Exception e) {
+                        throw new ShopOperatorException("addShopImgError: " + e.getMessage());
+                    }
+
+                    effectedNum = shopDao.updateShop(shop);
+                    if (effectedNum <= 0) {
+                        throw new ShopOperatorException("跟新图片地址失败");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ShopOperatorException("addShopError: " + e.getMessage());
+        }
+
+        return new ShopExecution(ShopStateEnum.CHECK, shop);
+    }
+
+    /**
+     * 添加店铺图片：
+     * 1. 获取shop图片存储到本地服务器的相对路径
+     * 2. 将该图片处理成缩略图后保存在该路径，并返回路径地址
+     * 3. 更新shopImgAddr
+     *
+     * @param shop
+     * @param shopImg
+     */
+    private void addShopImg(Shop shop, File shopImg) {
+        String dest = PathUtil.getShopImagePath(shop.getShopId());
+        String shopImgAddr = ImageUtil.generateThumbnail(shopImg, dest);
+        shop.setShopImg(shopImgAddr);
+    }
+}
+```
+
+* 构造shop异常体系
+* 需要继承RuntimeException，因为触发非运行时期异常的时候才会事务回滚
+
+```java
+package com.biyu.o2o.exceptions;
+
+public class ShopOperatorException extends RuntimeException{
+
+    private static final long serialVersionUID = 346463210271169300L;
+
+    public ShopOperatorException(String msg) {
+        super(msg);
+    }
+}
+```
+
+* 单元测试
+
+```java
+public class ShopServiceTest extends BaseTest {
+
+    @Autowired
+    private ShopService shopService;
+
+    @Test
+    public void addShop() {
+        Shop shop = new Shop();
+
+        PersonInfo owner = new PersonInfo();
+        Area area = new Area();
+        ShopCategory shopCategory = new ShopCategory();
+
+        owner.setUserId(1L);
+        area.setAreaId(2L);
+        shopCategory.setShopCategoryId(1L);
+
+        shop.setOwner(owner);
+        shop.setArea(area);
+        shop.setShopCategory(shopCategory);
+
+        shop.setShopName("测试店铺1");
+        shop.setShopDesc("test1");
+        shop.setShopAddr("test1");
+        shop.setPhone("test1");
+        shop.setShopImg("test1");
+        shop.setCreateTime(new Date());
+        shop.setEnableStatus(ShopStateEnum.CHECK.getState());
+        shop.setAdvice("审核中");
+
+        File shopImg = new File("C:\\Users\\BiYu\\Pictures\\frame0000.jpg");
+        ShopExecution se = shopService.addShop(shop, shopImg);
+
+        assert ShopStateEnum.CHECK.getState() == se.getState();
+    }
+}
+```
+
+
 
 
 
