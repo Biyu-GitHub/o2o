@@ -507,5 +507,11 @@ http://localhost:8080/o2o/superadmin/listarea
 </update>
 ```
 
+### 4.3 图片处理与封装
+
+### 4.4 ShopExecution
+
+### 4.5 Service
+
 
 
