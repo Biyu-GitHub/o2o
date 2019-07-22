@@ -73,28 +73,19 @@ public class ShopManagementController {
             owner.setUserId(1L);
             shop.setOwner(owner);
 
-            // 图片流转换
-            File shopImgFile = new File(PathUtil.getImgBasePath() + ImageUtil.getRandomFileName());
-            try {
-                shopImgFile.createNewFile();
-            } catch (IOException e) {
-                modelMap.put("success", false);
-                modelMap.put("errMsg", e.getMessage());
-                return modelMap;
-            }
-            try {
-                inputStreamToFile(shopImg.getInputStream(), shopImgFile);
-            } catch (IOException e) {
-                modelMap.put("success", false);
-                modelMap.put("errMsg", e.getMessage());
-                return modelMap;
-            }
-
             // 添加店铺
-            ShopExecution se = shopService.addShop(shop, shopImgFile);
-            if (se.getState() == ShopStateEnum.CHECK.getState()) {
-                modelMap.put("success", true);
-            } else {
+            ShopExecution se = null;
+            try {
+                se = shopService.addShop(shop, shopImg.getInputStream(), shopImg.getOriginalFilename());
+                // 判断返回结果
+                if (se.getState() == ShopStateEnum.CHECK.getState()) {
+                    modelMap.put("success", true);
+                } else {
+                    modelMap.put("success", false);
+                    modelMap.put("errMsg", se.getState());
+                    return modelMap;
+                }
+            } catch (IOException e) {
                 modelMap.put("success", false);
                 modelMap.put("errMsg", se.getState());
                 return modelMap;
@@ -105,39 +96,6 @@ public class ShopManagementController {
             modelMap.put("success", false);
             modelMap.put("errMsg", "请输入店铺信息");
             return modelMap;
-        }
-        // 3. 返回结果
-    }
-
-    private static void inputStreamToFile(InputStream ins, File file) {
-        FileOutputStream os = null;
-        try {
-            os = new FileOutputStream(file);
-            int len = 0;
-            byte[] b = new byte[1024];
-
-            while ((len = ins.read(b)) != -1) {
-                os.write(b, 0, len);
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException("inputStreamToFile异常:" + e.getMessage());
-        } finally {
-            if (os != null) {
-                try {
-                    os.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("inputStreamToFile关闭IO异常:" + e.getMessage());
-                }
-            }
-            if (ins != null) {
-                try {
-                    ins.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("inputStreamToFile关闭IO异常:" + e.getMessage());
-                }
-            }
         }
     }
 }

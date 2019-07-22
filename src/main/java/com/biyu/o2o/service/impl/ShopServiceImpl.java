@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Date;
 
 @Service
@@ -27,13 +28,13 @@ public class ShopServiceImpl implements ShopService {
      * 2. 添加图片
      * 3. 更新shop中的店铺图片地址
      *
-     * @param shop    shop对象
-     * @param shopImg 店铺图片
+     * @param shop               shop对象
+     * @param shopImgInputStream 店铺图片
      * @return
      */
     @Override
     @Transactional // 事务支持
-    public ShopExecution addShop(Shop shop, File shopImg) {
+    public ShopExecution addShop(Shop shop, InputStream shopImgInputStream, String fileName) throws ShopOperatorException {
 
         if (shop == null) {
             return new ShopExecution(ShopStateEnum.NULL_SHOP_INFO);
@@ -53,9 +54,9 @@ public class ShopServiceImpl implements ShopService {
                 throw new ShopOperatorException("店铺创建失败");
             } else {
                 // 如果传入了图片，则向店铺插入图片
-                if (shopImg != null) {
+                if (shopImgInputStream != null) {
                     try {
-                        addShopImg(shop, shopImg);
+                        addShopImg(shop, shopImgInputStream, fileName);
                     } catch (Exception e) {
                         throw new ShopOperatorException("addShopImgError: " + e.getMessage());
                     }
@@ -80,11 +81,11 @@ public class ShopServiceImpl implements ShopService {
      * 3. 更新shopImgAddr
      *
      * @param shop
-     * @param shopImg
+     * @param shopImgInputStream
      */
-    private void addShopImg(Shop shop, File shopImg) {
+    private void addShopImg(Shop shop, InputStream shopImgInputStream, String fileName) {
         String dest = PathUtil.getShopImagePath(shop.getShopId());
-        String shopImgAddr = ImageUtil.generateThumbnail(shopImg, dest);
+        String shopImgAddr = ImageUtil.generateThumbnail(shopImgInputStream, fileName, dest);
         shop.setShopImg(shopImgAddr);
     }
 }
