@@ -906,7 +906,40 @@ if (shop != null && shopImg != null) {
 }
 ```
 
+### 4.7 前端设计 SUI Mobile
 
+* 使用**SUI Mobile**快速搭建页面
+  * 将网页放在**WEB-INFO/html/shop/**下
+  * 此时网页完整地址为：**WEB-INFO/html/shop/shopoperation.html**
+
+* 建立Controller映射网页地址
+
+```java
+@Controller
+@RequestMapping(value = "shopadmin", method = {RequestMethod.GET})
+public class ShopAdminController {
+    /**
+     * 因为在spring-web中配置了如下信息：
+     * <property name="prefix" value="/WEB-INF/html/"></property>
+     * <property name="suffix" value=".html"></property>
+     * 所以可以给返回值自动添加前缀和后缀
+     *
+     * @return
+     */
+    @RequestMapping(value = "/shopoperation")
+    public String shopOperation() {
+        return "shop/shopoperation";
+    }
+}
+```
+
+* 访问如下网址
+
+```http
+http://localhost:8080/o2o/shopadmin/shopoperation
+```
+
+* js实现获取店铺信息，区域信息，以及将注册信息提交后台
 
 
 
