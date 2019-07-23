@@ -41,7 +41,7 @@ $(function () {
             };
 
             shop.area = {
-                area: $('#area').find('option').not(function () {
+                areaId: $('#area').find('option').not(function () {
                     return !this.selected;
                 }).data('id')
             };
@@ -49,10 +49,18 @@ $(function () {
             // 图片获取
             var shopImg = $('#shop-img')[0].files[0];
 
+            // 验证码获取
+            var verifyCodeActual = $('#j_captcha').val();
+            if (!verifyCodeActual) {
+                $.toast("请输入验证码！");
+                return;
+            }
+
             // 封装信息
             var formData = new FormData();
             formData.append('shopImg', shopImg);
             formData.append('shopStr', JSON.stringify(shop));
+            formData.append("verifyCodeActual", verifyCodeActual);
 
             // 将数据提交后台
             $.ajax({
@@ -68,8 +76,10 @@ $(function () {
                     } else {
                         $.toast('提交成功!' + data.errMsg);
                     }
+
+                    $('#captcha_img').click();
                 }
             });
         });
-    }
-})
+    };
+});

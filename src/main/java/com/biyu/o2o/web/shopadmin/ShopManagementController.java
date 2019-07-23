@@ -9,6 +9,7 @@ import com.biyu.o2o.enums.ShopStateEnum;
 import com.biyu.o2o.service.AreaService;
 import com.biyu.o2o.service.ShopCategoryService;
 import com.biyu.o2o.service.ShopService;
+import com.biyu.o2o.util.CodeUtil;
 import com.biyu.o2o.util.HttpServletRequestUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,12 @@ public class ShopManagementController {
 
         // 定义返回值
         Map<String, Object> modelMap = new HashMap<>();
+
+        if (!CodeUtil.checkVerifyCode(request)) {
+            modelMap.put("success", false);
+            modelMap.put("errMsg", "验证码错误");
+            return modelMap;
+        }
 
         // 1. 接收并转化相应的参数，包括店铺信息以及图片信息
         String shopStr = HttpServletRequestUtil.getString(request, "shopStr");
