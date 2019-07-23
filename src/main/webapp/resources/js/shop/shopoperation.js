@@ -2,10 +2,7 @@ $(function () {
     var initUrl = '/o2o/shopadmin/getshopinitinfo';
     var registerShopUrl = '/o2o/shopadmin/registershop';
 
-    alert(initUrl);
-
     getShopInitInfo();
-
 
     // 获取下拉列表的内容
     function getShopInitInfo() {
@@ -19,7 +16,7 @@ $(function () {
                 });
 
                 data.areaList.map(function (item, index) {
-                    tempHtml += '<option data-id="' + item.areaId + '">' + item.areaName + '</option>';
+                    tempAreaHtml += '<option data-id="' + item.areaId + '">' + item.areaName + '</option>';
                 });
 
                 $('#shop-category').html(tempHtml);
