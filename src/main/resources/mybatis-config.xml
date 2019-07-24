@@ -16,4 +16,9 @@
         <!-- 打印查询语句 -->
         <setting name="logImpl" value="STDOUT_LOGGING"/>
     </settings>
+
+    <plugins>
+        <!--主从同步拦截器-->
+        <plugin interceptor="com.biyu.o2o.dao.split.DynamicDataSourceInterceptor"></plugin>
+    </plugins>
 </configuration>

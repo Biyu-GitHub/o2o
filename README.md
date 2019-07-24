@@ -941,7 +941,5 @@ http://localhost:8080/o2o/shopadmin/shopoperation
 
 * js实现获取店铺信息，区域信息，以及将注册信息提交后台
 
-
-
-
+## 5. 主从库同步与读写分离
 

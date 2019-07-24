@@ -27,7 +27,7 @@ public class ShopCategoryDaoTest extends BaseTest {
         List<ShopCategory> shopCategoryList = shopCategoryDao.queryShopCategory(test);
 
         for (ShopCategory shopCategory : shopCategoryList) {
-            System.out.println(shopCategory);
+            System.out.println("shopCategory=====>:" + shopCategory);
         }
     }
 }
