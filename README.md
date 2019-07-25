@@ -943,3 +943,4 @@ http://localhost:8080/o2o/shopadmin/shopoperation
 
 ## 5. 主从库同步与读写分离
 
+安装两个MySQL，并配置主从同步。

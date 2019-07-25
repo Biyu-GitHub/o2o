@@ -116,4 +116,17 @@ public class ImageUtil {
                 .outputQuality(0.8f)
                 .toFile("C:\\Users\\BiYu\\Pictures\\frame000000.jpg");
     }
+
+    public static void deleteFileOrPath(String storePath) {
+        File file = new File(PathUtil.getImgBasePath() + storePath);
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                File files[] = file.listFiles();
+                for (int i = 0; i < files.length; i++) {
+                    files[i].delete();
+                }
+            }
+            file.delete();
+        }
+    }
 }

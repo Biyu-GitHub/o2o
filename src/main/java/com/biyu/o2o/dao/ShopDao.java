@@ -18,4 +18,12 @@ public interface ShopDao {
      * @return effectedNum
      */
     int updateShop(Shop shop);
+
+    /**
+     * 通过owner id 查询店铺
+     *
+     * @param shopId
+     * @return shop
+     */
+    Shop queryByShopId(long shopId);
 }

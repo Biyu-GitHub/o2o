@@ -16,4 +16,23 @@ public interface ShopService {
      * @return
      */
     ShopExecution addShop(Shop shop, InputStream shopImgInputStream, String filename) throws ShopOperatorException;
+
+    /**
+     * 查询指定店铺信息
+     *
+     * @param shopId
+     * @return
+     */
+    Shop getByShopId(long shopId);
+
+    /**
+     * 更新店铺信息（从店家角度）
+     *
+     * @param shop
+     * @param shopImgInputStream
+     * @param filename
+     * @return
+     * @throws RuntimeException
+     */
+    ShopExecution modifyShop(Shop shop, InputStream shopImgInputStream, String filename) throws RuntimeException;
 }

@@ -53,4 +53,15 @@ public class ShopServiceTest extends BaseTest {
 
         assert ShopStateEnum.CHECK.getState() == se.getState();
     }
+
+    @Test
+    public void modifyShop() throws FileNotFoundException {
+        Shop shop = new Shop();
+        shop.setShopId(3L);
+        shop.setShopName("修改测试");
+        File shopImg = new File("C:\\Users\\BiYu\\Pictures\\frame0000.jpg");
+        InputStream inputStream = new FileInputStream(shopImg);
+        ShopExecution execution = shopService.modifyShop(shop, inputStream, "frame0000.jpg");
+        System.out.println(execution.getShop().getShopImg());
+    }
 }
